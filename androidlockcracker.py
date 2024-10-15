@@ -47,7 +47,7 @@ class PasswordGestureGenerate(object):
         return self.generate_hash(self.generate_gesture_string(self.gesture))
     
     def generate_hash(self, gesture_string):
-        return hashlib.sha1(gesture_string).hexdigest().upper()
+        return hashlib.sha1(gesture_string.encode()).hexdigest().upper()
     
 class PasswordPinGenerate(object):
     def __init__(self, passwd=None, salt=None):
@@ -73,17 +73,17 @@ class PasswordPinGenerate(object):
     
     def generate_hash_sha1(self, passwd):
         salted = passwd + self.salt
-        return hashlib.sha1(salted).hexdigest()
+        return hashlib.sha1(salted.encode()).hexdigest()
     
     def generate_self_hash(self):
         salted = self.passwd + self.salt
-        return (hashlib.sha1(salted).hexdigest() + 
-                hashlib.md5(salted).hexdigest()).upper()
+        return (hashlib.sha1(salted.encode()).hexdigest() + 
+                hashlib.md5(salted.encode()).hexdigest()).upper()
     
     def generate_hash(self, passwd):
         salted = passwd + self.salt
-        return (hashlib.sha1(salted).hexdigest() + 
-                hashlib.md5(salted).hexdigest()).upper()
+        return (hashlib.sha1(salted.encode()).hexdigest() + 
+                hashlib.md5(salted.encode()).hexdigest()).upper()
 
 class PasswordPinCracker(object):
     def __init__(self, phash, salt, plengthbegin=4, plengthend=4, numeric=True, 
@@ -130,7 +130,7 @@ class PasswordPinCracker(object):
         generator = PasswordPinGenerate()
         generator.set_salt(self.salt)
         charlist = self._gen_charlist()
-        for length in xrange(self.plengthbegin, self.plengthend+1):
+        for length in range(self.plengthbegin, self.plengthend+1):
             for passwd in product(charlist, repeat=length):
                 passwd = ''.join(passwd)
                 phash = generator.generate_hash(passwd)
@@ -153,7 +153,7 @@ class PasswordGestureCracker(object):
     def begin_brute_crack(self):
         generator = PasswordGestureGenerate(self.sizeX, self.sizeY)
         gridpoints = self._gen_points()
-        for length in xrange( self.lengthbegin, self.lengthend+1):
+        for length in range( self.lengthbegin, self.lengthend+1):
             #XXX Replace product() with something that doesn't generate 
             #repetitions (eg 1,1,...)
             for passwd in product(gridpoints, repeat=length):
@@ -281,7 +281,7 @@ def main():
         if opt in ('-h', '--help'):
             usage()
         elif opt in ('-s', '--salt'):
-            options.salt = struct.pack('>q', long(arg)).encode("hex")
+            options.salt = struct.pack('>q', int(arg)).encode("hex")
             options.strsalt = arg
         elif opt in ('-l', '--length'):
             options.passwd_length = int(arg)
@@ -310,7 +310,7 @@ def main():
         
     options.passwd = args[2]
     if len(args) == 4:
-        options.salt = struct.pack('>q', long(args[3])).encode("hex")
+        options.salt = struct.pack('>q', int(args[3])).hex()
         options.strsalt = args[3]
     if args[0] in ("crack", "CRACK"):
         handle_crack(options)
@@ -320,4 +320,4 @@ def main():
         usage()
         
 if __name__ == "__main__":
-    main()        
+    main()
